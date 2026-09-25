@@ -48,8 +48,9 @@ for (const id of toolIds) {
   const status = response?.status() ?? 0;
   // 标题来自静态 HTML（SEO 需要），可交互元素来自水合后的 React 岛屿
   const hasHeading = (await page.locator('h1').count()) > 0;
+  // [role="button"] 覆盖 FileDrop：它唯一的 input 是隐藏的文件选择框
   const hydrated = await page
-    .locator('textarea, input, button[role="switch"], [role="tablist"]')
+    .locator('textarea, input, button[role="switch"], [role="tablist"], [role="button"]')
     .first()
     .waitFor({ timeout: 5000 })
     .then(() => true)
@@ -108,6 +109,50 @@ await page.locator('textarea').first().fill('abc');
 await page.waitForTimeout(600);
 check('SHA-256("abc") 结果正确',
   (await page.innerText('body')).includes('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'));
+
+await page.goto(`${BASE}/tools/md5/`, { waitUntil: 'networkidle' });
+await page.waitForSelector('textarea');
+await page.locator('textarea').first().fill('abc');
+await page.waitForTimeout(300);
+check('MD5("abc") 结果正确',
+  (await page.innerText('body')).includes('900150983cd24fb0d6963f7d28e17f72'));
+
+await page.goto(`${BASE}/tools/radix/`, { waitUntil: 'networkidle' });
+await page.waitForSelector('#radix-input');
+await page.fill('#radix-input', '255');
+await page.waitForTimeout(300);
+const radixBody = await page.innerText('body');
+check('进制转换 255 → 0xff / 0b11111111',
+  radixBody.includes('0xff') && radixBody.includes('0b11111111'));
+
+await page.goto(`${BASE}/tools/case-convert/`, { waitUntil: 'networkidle' });
+await page.waitForSelector('textarea');
+await page.locator('textarea').first().fill('userProfileSettings');
+await page.waitForTimeout(300);
+const caseBody = await page.innerText('body');
+check('命名风格转换正确',
+  caseBody.includes('user_profile_settings') && caseBody.includes('user-profile-settings'));
+
+await page.goto(`${BASE}/tools/regex/`, { waitUntil: 'networkidle' });
+await page.waitForSelector('#re-pattern');
+await page.fill('#re-pattern', '\\d+');
+await page.fill('#re-text', 'a1b22c333');
+await page.waitForTimeout(400);
+check('正则匹配数正确（3 处）', (await page.innerText('body')).includes('匹配结果（3 处）'));
+
+await page.goto(`${BASE}/tools/cron/`, { waitUntil: 'networkidle' });
+await page.waitForSelector('#cron-input');
+await page.fill('#cron-input', '0 9 * * 1-5');
+await page.waitForTimeout(900);
+const cronBody = await page.innerText('body');
+check('Cron 翻译成中文且算出执行时间',
+  cronBody.includes('09:00') && cronBody.includes('第 1 次'));
+
+await page.goto(`${BASE}/tools/password/`, { waitUntil: 'networkidle' });
+await page.waitForSelector('code');
+await page.waitForTimeout(400);
+const pwd = await page.locator('code').first().innerText();
+check('密码按设定长度生成', pwd.length >= 6 && pwd.length <= 64, `生成 ${pwd.length} 位`);
 
 await page.goto(`${BASE}/tools/qrcode/`, { waitUntil: 'networkidle' });
 await page.waitForSelector('textarea');
