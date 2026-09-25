@@ -188,7 +188,3 @@ npm run test:smoke
 
 JSON ↔ YAML 互转、Markdown 预览（需做 XSS 净化）、SQL 格式化、
 JSON 转 TypeScript 类型、图片裁剪、Base64 转图片、URL 解析器。
-
-## License
-
-MIT
