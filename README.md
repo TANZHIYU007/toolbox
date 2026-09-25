@@ -132,6 +132,7 @@ export default function TextReverseTool() {
 | `IOArea` | 带标签、字数、复制按钮的文本框。输入输出都用它 |
 | `ResultRow` | 「字段名 → 值 → 复制」一行，多结果输出用 |
 | `Segmented` | 互斥模式切换（编码/解码） |
+| `FileDrop` | 文件拖入 / 点击选择，带拖拽高亮和文件信息条 |
 | `Toggle` / `Field` / `Button` / `Panel` | 开关、选项行、按钮、卡片 |
 
 **可直接复用的 hooks**（`src/lib/hooks.ts`）：
@@ -150,7 +151,8 @@ npm run preview    # 本地预览构建产物
 npm run check      # TypeScript + Astro 类型检查
 ```
 
-冒烟测试（会自动遍历每个已注册的工具，验证页面能打开、能水合、无报错）：
+冒烟测试（自动遍历每个已注册的工具，验证页面能打开、岛屿能水合、控制台无报错，
+另有一批关键计算的结果断言，如 MD5/SHA-256 的已知向量、中文 Base64 往返、进制转换）：
 
 ```bash
 npm i -D playwright && npx playwright install chromium
@@ -171,10 +173,21 @@ npm run test:smoke
 
 站内所有链接都走 `src/lib/base.ts` 的 `withBase()`，所以不用逐个文件改。
 
+## 现有工具（25 个）
+
+| 分类 | 工具 |
+|---|---|
+| 编码转换 | Base64、URL 编解码、JWT 解码、进制转换、Unicode 转义 |
+| 文本处理 | JSON 格式化、正则测试、文本对比、命名风格转换、文本处理 |
+| 时间日期 | 时间戳转换、Cron 表达式、时区转换 |
+| 加密哈希 | 哈希计算（SHA 系列）、MD5、HMAC 签名 |
+| 生成器 | UUID、二维码生成、密码生成、假数据生成 |
+| 颜色图像 | 颜色转换、图片压缩、图片转 Base64、CSS 渐变、二维码识别 |
+
 ## 后续想加的工具
 
-正则测试、文本 Diff、Cron 表达式解析、Markdown 预览、图片压缩、
-进制转换、大小写/命名风格转换、Unicode 转义、YAML ↔ JSON、MD5（需引入实现）。
+JSON ↔ YAML 互转、Markdown 预览（需做 XSS 净化）、SQL 格式化、
+JSON 转 TypeScript 类型、图片裁剪、Base64 转图片、URL 解析器。
 
 ## License
 
