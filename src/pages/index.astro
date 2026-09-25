@@ -1,0 +1,119 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SmartInput from '../components/SmartInput';
+import ToolCard from '../components/ToolCard.astro';
+import ToolIcon from '../components/ToolIcon';
+import { tools } from '../tools/registry';
+import { categories } from '../tools/categories';
+
+// 只列出有工具的分类，避免出现空筛选项
+const activeCategories = categories
+  .map((c) => ({ ...c, count: tools.filter((t) => t.category === c.id).length }))
+  .filter((c) => c.count > 0);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: '工具箱',
+  description: `${tools.length} 个纯前端在线小工具，所有计算在浏览器本地完成，不上传数据。`,
+  url: Astro.site?.href,
+};
+---
+<BaseLayout
+  title="工具箱 — 纯前端在线小工具集合"
+  description={`${tools.length} 个常用开发小工具：JSON 格式化、时间戳转换、Base64、JWT 解码、哈希计算、二维码生成等。全部在浏览器本地运行，数据不上传。`}
+  jsonLd={jsonLd}
+>
+  <section class="pt-14 pb-10 sm:pt-20">
+    <h1 class="text-gradient text-4xl font-bold tracking-tight sm:text-5xl">
+      一个顺手的工具箱
+    </h1>
+    <p class="mt-4 max-w-xl text-[15px] leading-relaxed text-fg-muted">
+      常用小工具的集合。不用挑工具 —— 把内容粘进下面的框，它自己认。
+      所有计算都在你的浏览器里跑完，不上传，断网也能用。
+    </p>
+
+    <div class="mt-8">
+      <SmartInput client:load />
+    </div>
+  </section>
+
+  <section>
+    <!-- 分类筛选。纯 CSS class 切换，没 JS 时所有工具依然完整可见（SEO 也需要它们都在 DOM 里） -->
+    <div id="filters" class="mb-5 flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        data-filter="all"
+        aria-pressed="true"
+        class="filter-chip inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+      >
+        全部
+        <span class="font-mono text-[10px] opacity-60">{tools.length}</span>
+      </button>
+
+      {activeCategories.map((c) => (
+        <button
+          type="button"
+          data-filter={c.id}
+          aria-pressed="false"
+          class="filter-chip inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+        >
+          <ToolIcon name={c.icon} size={13} />
+          {c.name}
+          <span class="font-mono text-[10px] opacity-60">{c.count}</span>
+        </button>
+      ))}
+    </div>
+
+    <div id="tool-grid" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {tools.map((tool) => <ToolCard tool={tool} />)}
+    </div>
+
+    <p id="empty-hint" class="hidden py-10 text-center text-sm text-fg-subtle">
+      这个分类下还没有工具
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .filter-chip {
+    border-color: var(--border);
+    background-color: var(--surface);
+    color: var(--fg-muted);
+  }
+  .filter-chip:hover {
+    border-color: var(--fg-subtle);
+    color: var(--fg);
+  }
+  .filter-chip[aria-pressed='true'] {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand);
+  }
+</style>
+
+<script>
+  const filters = document.getElementById('filters');
+  const grid = document.getElementById('tool-grid');
+  const emptyHint = document.getElementById('empty-hint');
+
+  filters?.addEventListener('click', (event) => {
+    const chip = (event.target as HTMLElement).closest<HTMLElement>('[data-filter]');
+    if (!chip || !grid) return;
+
+    const selected = chip.dataset.filter!;
+
+    for (const el of filters.querySelectorAll<HTMLElement>('[data-filter]')) {
+      el.setAttribute('aria-pressed', String(el === chip));
+    }
+
+    let visible = 0;
+    for (const card of grid.querySelectorAll<HTMLElement>('.tool-card')) {
+      const show = selected === 'all' || card.dataset.category === selected;
+      card.classList.toggle('hidden', !show);
+      if (show) visible += 1;
+    }
+
+    emptyHint?.classList.toggle('hidden', visible > 0);
+  });
+</script>
