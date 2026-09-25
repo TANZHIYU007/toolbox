@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ToolHost from '../../components/ToolHost';
+import ToolCard from '../../components/ToolCard.astro';
+import ToolIcon from '../../components/ToolIcon';
+import { tools, getTool } from '../../tools/registry';
+import { categoryName } from '../../tools/categories';
+import { withBase } from '../../lib/base';
+
+// 注册表驱动的静态路由：加一个工具文件夹，这里自动多出一个预渲染页面
+export function getStaticPaths() {
+  return tools.map((tool) => ({ params: { id: tool.id } }));
+}
+
+const { id } = Astro.params;
+const tool = getTool(id!);
+if (!tool) throw new Error(`未知工具: ${id}`);
+
+// 同分类的其他工具，做内链（对 SEO 有用，也真的方便）
+const related = tools.filter((t) => t.category === tool.category && t.id !== tool.id).slice(0, 3);
+
+const jsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'CNY' },
+};
+
+if (tool.faq?.length) {
+  jsonLd.mainEntity = tool.faq.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  }));
+}
+---
+<BaseLayout
+  title={`${tool.name} — 在线工具箱`}
+  description={tool.description}
+  jsonLd={jsonLd}
+>
+  <nav aria-label="面包屑" class="flex items-center gap-1.5 pt-8 text-xs text-fg-subtle">
+    <a href={withBase('/')} class="transition-colors hover:text-fg-muted">工具箱</a>
+    <span>/</span>
+    <span>{categoryName(tool.category)}</span>
+    <span>/</span>
+    <span class="text-fg-muted">{tool.name}</span>
+  </nav>
+
+  <header class="mt-4 mb-8 flex items-start gap-3.5">
+    <span class="shrink-0 rounded-xl bg-brand-soft p-2.5 text-brand">
+      <ToolIcon name={tool.icon} size={22} />
+    </span>
+    <div class="min-w-0">
+      <h1 class="text-2xl font-bold tracking-tight">{tool.name}</h1>
+      <p class="mt-1 text-sm leading-relaxed text-fg-muted">{tool.description}</p>
+    </div>
+  </header>
+
+  <!--
+    工具本体。用 client:only 而不是 client:load：
+    工具全是浏览器端的活（crypto、剪贴板、文件），没有服务端渲染的价值，
+    也避免 React.lazy 在 SSR 阶段的取舍。SEO 需要的正文在下方静态渲染。
+  -->
+  <ToolHost id={tool.id} client:only="react" />
+
+  {tool.about && (
+    <section class="mt-14 border-t border-border-soft pt-8">
+      <h2 class="mb-3 text-base font-semibold">关于这个工具</h2>
+      <p class="max-w-2xl text-sm leading-7 text-fg-muted">{tool.about}</p>
+    </section>
+  )}
+
+  {tool.faq?.length && (
+    <section class="mt-10">
+      <h2 class="mb-4 text-base font-semibold">常见问题</h2>
+      <dl class="max-w-2xl space-y-4">
+        {tool.faq.map((item) => (
+          <div class="rounded-xl border border-border-soft bg-surface px-4 py-3.5">
+            <dt class="text-sm font-medium text-fg">{item.q}</dt>
+            <dd class="mt-1.5 text-sm leading-relaxed text-fg-muted">{item.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )}
+
+  {related.length > 0 && (
+    <section class="mt-14">
+      <h2 class="mb-4 text-sm font-semibold text-fg-muted">同类工具</h2>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {related.map((t) => <ToolCard tool={t} />)}
+      </div>
+    </section>
+  )}
+</BaseLayout>

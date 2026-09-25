@@ -1,0 +1,23 @@
+---
+import { withBase } from '../lib/base';
+---
+<footer class="mt-20 border-t border-border/70">
+  <div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-8 text-xs text-fg-subtle sm:flex-row sm:items-center sm:justify-between">
+    <p class="flex items-center gap-2">
+      <svg class="size-3.5 shrink-0 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>
+      </svg>
+      <span>所有计算都在你的浏览器里完成，不上传任何数据</span>
+    </p>
+    <p class="flex items-center gap-4">
+      <a href={withBase('/')} class="transition-colors hover:text-fg-muted">全部工具</a>
+      <a
+        href="https://github.com/TANZHIYU007/toolbox"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="transition-colors hover:text-fg-muted"
+      >源码</a>
+      <span>MIT</span>
+    </p>
+  </div>
+</footer>
