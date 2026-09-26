@@ -173,12 +173,12 @@ npm run test:smoke
 
 站内所有链接都走 `src/lib/base.ts` 的 `withBase()`，所以不用逐个文件改。
 
-## 现有工具（25 个）
+## 现有工具（28 个）
 
 | 分类 | 工具 |
 |---|---|
-| 编码转换 | Base64、URL 编解码、JWT 解码、进制转换、Unicode 转义 |
-| 文本处理 | JSON 格式化、正则测试、文本对比、命名风格转换、文本处理 |
+| 编码转换 | Base64、URL 编解码、URL 解析器、JWT 解码、进制转换、Unicode 转义 |
+| 文本处理 | JSON 格式化、JSON ↔ YAML、JSON 转 TypeScript、正则测试、文本对比、命名风格转换、文本处理 |
 | 时间日期 | 时间戳转换、Cron 表达式、时区转换 |
 | 加密哈希 | 哈希计算（SHA 系列）、MD5、HMAC 签名 |
 | 生成器 | UUID、二维码生成、密码生成、假数据生成 |
@@ -186,5 +186,4 @@ npm run test:smoke
 
 ## 后续想加的工具
 
-JSON ↔ YAML 互转、Markdown 预览（需做 XSS 净化）、SQL 格式化、
-JSON 转 TypeScript 类型、图片裁剪、Base64 转图片、URL 解析器。
+Markdown 预览（需做 XSS 净化）、SQL 格式化、图片裁剪、Base64 转图片。

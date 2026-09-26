@@ -160,6 +160,23 @@ await page.locator('textarea').first().fill('https://example.com');
 await page.waitForTimeout(1500);
 check('二维码按需加载并生成', (await page.locator('img[alt="生成的二维码"]').count()) === 1);
 
+await page.goto(`${BASE}/tools/url-parse/`, { waitUntil: 'networkidle' });
+await page.locator('textarea').fill('https://example.com/docs?q=%E5%B7%A5%E5%85%B7%E7%AE%B1&tag=web#intro');
+await page.waitForTimeout(200);
+const urlBody = await page.innerText('body');
+check('URL 解析器拆解主机和查询参数', urlBody.includes('example.com') && urlBody.includes('工具箱'));
+
+await page.goto(`${BASE}/tools/json-yaml/`, { waitUntil: 'networkidle' });
+await page.locator('textarea').first().fill('{"name":"toolbox","enabled":true}');
+await page.waitForTimeout(400);
+check('JSON 转 YAML 结果正确', (await page.locator('textarea').nth(1).inputValue()).includes('name: toolbox'));
+
+await page.goto(`${BASE}/tools/json-typescript/`, { waitUntil: 'networkidle' });
+await page.locator('textarea').first().fill('{"id":1,"profile":{"active":true}}');
+await page.waitForTimeout(200);
+const typeOutput = await page.locator('textarea').nth(1).inputValue();
+check('JSON 转 TypeScript 生成嵌套类型', typeOutput.includes('interface Root') && typeOutput.includes('interface Profile'));
+
 /* ---------- 5. 主题切换 ---------- */
 await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
 const themeBefore = await page.evaluate(() => document.documentElement.classList.contains('dark'));
